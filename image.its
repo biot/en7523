@@ -1,0 +1,47 @@
+/*
+ * Simple U-boot uImage source file containing a single kernel and FDT blob
+ */
+
+/dts-v1/;
+
+/ {
+        description = "Kernel image with single Linux kernel, rootfs and FDT blob";
+        #address-cells = <1>;
+
+        images {
+                fdt {
+                        description = "Flattened Device Tree blob";
+                        type = "flat_dt";
+                        data = /incbin/("arch/arm/boot/dts/en7523.dtb");
+                        arch = "arm";
+                        compression = "none";
+                };
+                kernel {
+                        description = "Linux kernel";
+                        type = "kernel";
+                        data = /incbin/("Image.gzip");
+                        arch = "arm";
+                        os = "linux";
+                        compression = "gzip";
+                        load = <0x80008000>;
+                        entry = <0x80008000>;
+                        hash {
+                                algo = "sha1";
+                        };
+                };
+        };
+
+        configurations {
+                default = "kernel_only";
+                kernel_only {
+                        description = "Boot Linux kernel with FDT blob";
+                        fdt = "fdt";
+                        kernel = "kernel";
+                };
+                kernel_root {
+                        description = "Boot Linux kernel with FDT blob";
+                        fdt = "fdt";
+                        kernel = "kernel";
+                };
+        };
+};

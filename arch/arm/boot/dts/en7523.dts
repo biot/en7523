@@ -1,0 +1,266 @@
+
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+
+/dts-v1/;
+
+/ {
+	compatible = "econet,en7523";
+	interrupt-parent = <&gic>;
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	chosen {
+	/*
+		bootargs = "xroot=/dev/mtdblock3 rootfstype=squashfs ro earlycon=uart8250,mmio32,0x1fbf0000 console=ttyS0,115200 init=/sbin/init dyndbg=\"file fs/squashfs/* +p\" loglevel=8";
+	*/
+		bootargs = "earlycon=uart8250,mmio32,0x1fbf0000 console=ttyS0,115200";
+		stdout-path = &uart1;
+	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		npu_reserved: npu_binary@84000000 {
+			no-map;
+			reg = <0x84000000 0xA00000>;
+		};
+                host_counter: npu_flag@84B0000 {
+                        no-map;
+                        reg = <0x84B00000 0x100000>;
+                };
+
+                npu_get_pkt: npu_pkt@85000000 {
+                        no-map;
+                        reg = <0x85000000 0x1A00000>;
+                };
+                npu_save_phyaddr: npu_phyaddr@86B00000 {
+                        no-map;
+                        reg = <0x86B00000 0x100000>;
+                };
+                npu_rx_desc: npu_rxdesc@86D00000 {
+                        no-map;
+                        reg = <0x86D00000 0x100000>;
+                };
+	};
+
+/*
+	psci {
+		compatible = "arm,psci-0.2";
+		method = "smc";
+	};
+*/
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu-map {
+			cluster0 {
+				core0 {
+					cpu = <&cpu0>;
+				};
+				core1 {
+					cpu = <&cpu1>;
+				};
+			};
+		};
+
+		cpu0: cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x0>;
+			enable-method = "psci";
+			clock-frequency = <80000000>;
+
+			next-level-cache = <&L2_0>;
+
+		};
+
+		cpu1: cpu@1 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <0x1>;
+			enable-method = "psci";
+			clock-frequency = <80000000>;
+			next-level-cache = <&L2_0>;
+		};
+
+		L2_0: l2-cache0 {
+			compatible = "cache";
+		};
+	};
+
+	gic: interrupt-controller@09000000 {
+		compatible = "arm,gic-v3";
+		interrupt-controller;
+		#interrupt-cells = <3>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0x09000000 0x20000>,
+			  <0x09080000 0x80000>;
+		interrupts = <GIC_PPI 9 IRQ_TYPE_LEVEL_LOW>;
+
+		its: gic-its@09020000 {
+			compatible = "arm,gic-v3-its";
+			msi-controller;
+			#msi-cell = <1>;
+			reg = <0x090200000 0x20000>;
+		};
+	};
+
+	timer {
+		compatible = "arm,armv8-timer";
+		interrupt-parent = <&gic>;
+		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
+			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
+		clock-frequency = <25000000>;
+	};
+
+	memory@80000000 {
+		device_type = "memory";
+		reg = <0x80000000 0x40000000>;
+	};
+
+	uart1: serial@1fbf0000 {
+		compatible = "ns8250";
+		reg = <0x1fbf0000 0x30>;
+		reg-io-width = <4>;
+		reg-shift = <2>;
+		interrupts = <GIC_SPI 18 IRQ_TYPE_LEVEL_HIGH>;
+		clock-frequency = <1843200>;
+		status = "okay";
+	};
+
+	spi_ctrl: spi_controller@1fa10000 {
+		compatible = "econet,en7523-spi";
+		reg = <0x1fa10000 0x140>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		spi-rx-bus-width = <2>;
+		spi-tx-bus-width = <2>;
+
+		nand: nand@0 {
+			compatible = "spi-nand";
+			reg = <0>;
+			nand-ecc-engine = <&nand>;
+			partitions {
+				compatible = "fixed-partitions";
+				#address-cells = <1>;
+				#size-cells = <1>;
+
+				uboot: partition@0 {
+					label = "u-boot";
+					reg = <0x0 0x80000>;
+				};
+
+				uboot_data: partition@1 {
+					label = "uboot_data";
+					reg = <0x80000 0x40000>;
+				};
+
+				kernel: partition@2 {
+					label = "kernel";
+					reg = <0xc0000 0x480e9f>;
+				};
+
+				rootfs: partition@3 {
+					label = "rootfs";
+					reg = <0x560f98 0xf10000>;
+				};
+
+/*
+				uboot: partition@0 {
+					label = "u-boot";
+					reg = <0x0 0x80000>;
+				};
+
+				kernel: partition@1 {
+					label = "kernel";
+					reg = <0xc0000 0x2e4683>;
+				};
+
+				rootfs: partition@2 {
+					label = "rootfs";
+					reg = <0x3a477c 0x2b0000>;
+				};
+
+				rootfsdata: partition@3 {
+					label = "rootfs_data";
+					reg = <0x2000000 0xbf80000>;
+				};
+*/
+			};
+		};
+	};
+
+	pcie@0x1fa91000 {
+		compatible = "ecnt,pcie-en7523";
+		device_type = "pci";
+		reg = <0x1fa91000 0x1000>,
+		      <0x1fa92000 0x1000>,
+		      <0x1fa90000 0x1000>,	/* pcie top*/
+		      <0x1a100000 0x1000>,	/* switch lane */
+		      <0x1a148000 0x1000>,	/* 4, rc0 phy base, for change xtal setting */
+		      <0x1a14a000 0x1000>;	/* 5, rc1 phy base, for change xtal setting */
+		interrupts = <GIC_SPI 39 IRQ_TYPE_LEVEL_HIGH>,  //23+16
+			     <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;  //24+16
+		bus-range = <0x00 0xff>;
+		#address-cells = <3>;
+		#size-cells = <2>;
+		/* change xtal for 40M, default is 25M */
+		/* change-xtal; */
+		/* disable io coherent for RC and EP default. */
+		/*dma-coherent;*/
+		ranges = <0x82000000 0 0x20000000  0x20000000  0 0x10000000>;
+
+		pcie0: pcie@0,0 {
+			device_type = "pci";
+			reg = <0x0000 0 0 0 0>;
+			#address-cells = <3>;
+			#size-cells = <2>;
+			#interrupt-cells = <1>;
+			ranges;
+			interrupt-map-mask = <0 0 0 7>;
+			interrupt-map = <0 0 0 1 &pcie_intc0 1>,
+					<0 0 0 2 &pcie_intc0 2>,
+					<0 0 0 3 &pcie_intc0 3>,
+					<0 0 0 4 &pcie_intc0 4>;
+			pcie-port = <0>;
+			num-lanes = <1>;
+			status = "okay";
+			pcie_intc0: interrupt-controller {
+				interrupt-controller;
+				#address-cells = <0>;
+				#interrupt-cells = <1>;
+			};
+		};
+
+		pcie1: pcie@1,0 {
+			device_type = "pci";
+			reg = <0x0800 0 0 0 0>;
+			#address-cells = <3>;
+			#size-cells = <2>;
+			#interrupt-cells = <1>;
+			ranges;
+			interrupt-map-mask = <0 0 0 7>;
+			interrupt-map = <0 0 0 1 &pcie_intc1 1>,
+					<0 0 0 2 &pcie_intc1 2>,
+					<0 0 0 3 &pcie_intc1 3>,
+					<0 0 0 4 &pcie_intc1 4>;
+			pcie-port = <1>;
+			num-lanes = <1>;
+			status = "okay";
+			pcie_intc1: interrupt-controller {
+				interrupt-controller;
+				#address-cells = <0>;
+				#interrupt-cells = <1>;
+			};
+		};
+	};
+};

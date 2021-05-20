@@ -613,6 +613,19 @@ source "arch/arm/mach-digicolor/Kconfig"
 
 source "arch/arm/mach-dove/Kconfig"
 
+config ARCH_ECONET
+	bool "Econet ARM SoC platforms"
+	select ARM_GIC
+	select ARM_GIC_V3
+	select HAVE_ALIGNED_STRUCT_PAGE
+	select ARM_AMBA
+	select HAVE_PATA_PLATFORM
+	select HAVE_DEBUG_BUGVERBOSE
+	select ARM_DMA_USE_IOMMU
+	select IOMMU_DMA
+	help
+	  Support for Econet ARM SoC platforms
+
 source "arch/arm/mach-ep93xx/Kconfig"
 
 source "arch/arm/mach-exynos/Kconfig"
