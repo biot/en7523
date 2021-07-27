@@ -24,3 +24,26 @@
 		reg = <0x80000000 0x20000000>;
 	};
 };
+<<<<<<< HEAD
+=======
+
+&pcie {
+	status = "okay";
+};
+
+&pcie0 {
+	status = "okay";
+};
+
+&pcie1 {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
+};
+>>>>>>> b345b9c63f76... gpio: Add support for EcoNet EN7523 GPIO controller
