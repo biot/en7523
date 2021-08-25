@@ -1,0 +1,16 @@
+#!/bin/bash
+
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabi-
+#export CROSS_COMPILE=/home/bert/board/en7523/openwrt-9ee27c2/staging_dir/toolchain-arm_cortex-a7_gcc-8.4.0_musl_eabi/bin/arm-openwrt-linux-
+#export STAGING_DIR=/home/bert/board/en7523/linux/tmp
+
+make -j8 $*
+make en7523-evb.dtb
+
+echo "compressing..."
+cat arch/arm/boot/zImage |gzip > Image.gzip
+
+mkimage -f image.its /tftp/img
+rm -f Image.gzip
+echo "created /tftp/img"
