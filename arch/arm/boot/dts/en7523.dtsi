@@ -61,7 +61,7 @@
 
 		cpu0: cpu@0 {
 			device_type = "cpu";
-			compatible = "arm,cortex-a7";
+			compatible = "arm,cortex-a53";
 			reg = <0x0>;
 			enable-method = "psci";
 			clock-frequency = <80000000>;
@@ -71,7 +71,7 @@
 
 		cpu1: cpu@1 {
 			device_type = "cpu";
-			compatible = "arm,cortex-a7";
+			compatible = "arm,cortex-a53";
 			reg = <0x1>;
 			enable-method = "psci";
 			clock-frequency = <80000000>;
@@ -83,7 +83,7 @@
 		};
 	};
 
-	gic: interrupt-controller@09000000 {
+	gic: interrupt-controller@9000000 {
 		compatible = "arm,gic-v3";
 		interrupt-controller;
 		#interrupt-cells = <3>;
@@ -92,28 +92,16 @@
 		reg = <0x09000000 0x20000>,
 			  <0x09080000 0x80000>;
 		interrupts = <GIC_PPI 9 IRQ_TYPE_LEVEL_LOW>;
-
-		its: gic-its@09020000 {
-			compatible = "arm,gic-v3-its";
-			msi-controller;
-			#msi-cell = <1>;
-			reg = <0x090200000 0x20000>;
-		};
 	};
 
 	timer {
-		compatible = "arm,armv8-timer";
+		compatible = "arm,armv7-timer";
 		interrupt-parent = <&gic>;
-		interrupts = <GIC_PPI 13 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
-			     <GIC_PPI 14 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
-			     <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
-			     <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
+		interrupts = <GIC_PPI 13 IRQ_TYPE_LEVEL_LOW>,
+			     <GIC_PPI 14 IRQ_TYPE_LEVEL_LOW>,
+			     <GIC_PPI 11 IRQ_TYPE_LEVEL_LOW>,
+			     <GIC_PPI 10 IRQ_TYPE_LEVEL_LOW>;
 		clock-frequency = <25000000>;
-	};
-
-	memory@80000000 {
-		device_type = "memory";
-		reg = <0x80000000 0x40000000>;
 	};
 
 	uart1: serial@1fbf0000 {
